@@ -1,0 +1,1 @@
+Simple TODO list application for the purpose of demonstrating insecure vs secure coding practices. There will be 2 separate branches involved, of which one is for the insecure version, and the other being secured properly with modern security principles.
