@@ -28,7 +28,7 @@ db.serialize(() => {
     //TODOs table, description is raw text which allows stored XSS
     db.run(`
         CREATE TABLE IF NOT EXISTS todos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         title TEXT,
         description TEXT,
