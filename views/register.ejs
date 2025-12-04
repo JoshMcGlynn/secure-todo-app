@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Register</title></head>
+    <body>
+        <nav style="margin-bottom:20px;">
+            <a href="/">Home</a> |
+            <a href="/register">Register</a> |
+            <a href="/login">Login</a> |
+            <a href="/todo">Create Todo</a> |
+            <a href="/todos">View Todos</a> |
+            <a href="/debug/users">Debug Users</a> |
+            <a href="/debug/todos">Debug Todos</a>
+        </nav>
+        <hr>
+        <h1> Register (insecure DO NOT USE ANY REAL INFORMATION)</h1>
+
+        <form method = "POST" action="/register">
+            <input name = "username" placeholder="Username" required>
+            <input name = "password" placeholder="Password" required>
+            <button type="submit">Register</button>
+        </form>
+        
+    </body>
+</html>
