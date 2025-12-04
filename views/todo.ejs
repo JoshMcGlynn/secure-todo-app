@@ -2,6 +2,16 @@
 <html>
     <head><title>Create TODO (Insecure)</title></head>
     <body>
+        <nav style="margin-bottom:20px;">
+            <a href="/">Home</a> |
+            <a href="/register">Register</a> |
+            <a href="/login">Login</a> |
+            <a href="/todo">Create Todo</a> |
+            <a href="/todos">View Todos</a> |
+            <a href="/debug/users">Debug Users</a> |
+            <a href="/debug/todos">Debug Todos</a>
+        </nav>
+        <hr>
         <h1>Create TODO (Insecure)</h1>
         <form method = "POST" action = "/todo">
             <input name = "user_id" placeholder="User ID">

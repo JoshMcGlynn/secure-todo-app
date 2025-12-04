@@ -15,7 +15,7 @@ let sessions = {};
 
 //Test route
 app.get('/', (req, res) => {
-    res.send("Insecure TODO App Running");
+    res.render("home");
 });
 
 //show all users (insecure test endpoint)

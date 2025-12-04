@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head><title>All TODOs (Insecure)</title></head>
+    <body>
+        <nav style="margin-bottom:20px;">
+            <a href="/">Home</a> |
+            <a href="/register">Register</a> |
+            <a href="/login">Login</a> |
+            <a href="/todo">Create Todo</a> |
+            <a href="/todos">View Todos</a> |
+            <a href="/debug/users">Debug Users</a> |
+            <a href="/debug/todos">Debug Todos</a>
+        </nav>
+        <hr>
+        <h1>All TODOs (Insecure)</h1>
+
+        <% todos.forEach(todo => { %>
+            <div style = "border:1px solid black; padding:10px; margin:10px;">
+                <h3><%= todo.title %></h3>
+
+                <!--Stored XSS happens here-->
+                <p><%- todo.description %></p>
+
+                <small>User ID: <%= todo.user_id %></small>
+            </div>
+        <% }) %>
+    </body>
+</html>
