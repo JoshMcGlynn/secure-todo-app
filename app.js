@@ -19,9 +19,10 @@ app.get('/', (req, res) => {
 });
 
 //show all users (insecure test endpoint)
-app.get('/debug/users', (req, res) => {
+app.get("/debug/users", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
-        if (err) return res.send("Error: " + err);
+        if (err) return res.send("Error: " + err); 
+        res.json(rows); //sensitive data exposure
     });
 });
 
@@ -67,6 +68,52 @@ app.post("/login", (req, res) => {
             //reflected XSS vulnerability
             res.send(`<h1>Login failed for ${username}</h1>`);
         }
+    });
+});
+
+//insecure TODO creation page
+app.get("/todo", (req, res) => {
+    res.render("todo");
+});
+
+//insecure TODO submission (SQL Injection and Stored XSS)
+app.post("/todo", (req, res) => {
+    const {title, description, user_id} = req.body;
+
+    const query = `
+    INSERT INTO todos (user_id, title, description)
+    VALUES ('${user_id}', '${title}', '${description}')`;
+
+    db.run(query, (err) => {
+        if(err){
+            return res.send("Error inserting TODO: " + err);
+        }
+        res.redirect("/todos");
+    });
+});
+
+//display all TODOs (stored XSS executes here)
+app.get("/todos", (req, res) => {
+    db.all("SELECT * FROM todos", [], (err, rows) => {
+        if(err) return res.send("Error loading TODOs");
+
+        res.render("todos", {todos: rows});
+    });
+});
+
+//TEMP: clear all todos (for XSS Testing)
+app.get("/debug/clear-todos", (req, res) => {
+    db.run("DELETE FROM todos", (err) => {
+        if(err) return res.send("Error clearing todos");
+        res.send("Todos table cleared");
+    });
+});
+
+//DEBUG: view raw todos in JSON (temp)
+app.get("/debug/todos", (req, res) => {
+    db.all("SELECT * FROM todos", [], (err, rows) => {
+        if(err) return res.send("DB Error: " + err);
+        res.json(rows);
     });
 });
 
