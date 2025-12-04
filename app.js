@@ -78,7 +78,7 @@ app.post("/login", (req, res) => {
 
         res.setHeader(
             "Set-Cookie",
-            `session=${token}; HttpOnly; Secure; SameSite=Strict`
+            `session=${token}; HttpOnly; SameSite=Strict`
         );
 
         res.redirect("/");
