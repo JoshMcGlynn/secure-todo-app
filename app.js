@@ -81,12 +81,12 @@ app.get('/', (req, res) => {
 });
 
 //show all users (insecure test endpoint)
-app.get("/debug/users", (req, res) => {
-    db.all("SELECT * FROM users", [], (err, rows) => {
-        if (err) return res.send("Error: " + err); 
-        res.json(rows); 
-    });
-});
+//app.get("/debug/users", (req, res) => {
+//    db.all("SELECT * FROM users", [], (err, rows) => {
+//        if (err) return res.send("Error: " + err); 
+//        res.json(rows); 
+//    });
+//});
 
 //render register page
 app.get("/register", (req, res) => {
@@ -177,7 +177,7 @@ app.get("/todo", requireLogin, (req, res) => {
 //Secure TODO submission
 app.post("/todo", requireLogin, (req, res) => {
     const {title} = req.body;
-    
+
     const user_id = req.session.user.id;
 
     if(!isValidTodoTitle(title) || !isNumeric(user_id)){
@@ -223,20 +223,20 @@ app.get("/todos", requireLogin, (req, res) => {
 });
 
 //TEMP: clear all todos (for XSS Testing)
-app.get("/debug/clear-todos", (req, res) => {
-    db.run("DELETE FROM todos", (err) => {
-        if(err) return res.send("Error clearing todos");
-        res.send("Todos table cleared");
-    });
-});
+//app.get("/debug/clear-todos", (req, res) => {
+//    db.run("DELETE FROM todos", (err) => {
+//        if(err) return res.send("Error clearing todos");
+//        res.send("Todos table cleared");
+//    });
+//});
 
 //DEBUG: view raw todos in JSON (temp)
-app.get("/debug/todos", (req, res) => {
-    db.all("SELECT * FROM todos", [], (err, rows) => {
-        if(err) return res.send("DB Error: " + err);
-        res.json(rows);
-    });
-});
+//app.get("/debug/todos", (req, res) => {
+//    db.all("SELECT * FROM todos", [], (err, rows) => {
+//        if(err) return res.send("DB Error: " + err);
+//        res.json(rows);
+//    });
+//});
 
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3000");

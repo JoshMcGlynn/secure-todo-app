@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head><title>Create TODO (Insecure)</title></head>
+    <head><title>Create TODO (Secure)</title></head>
     <body>
         <nav style="margin-bottom:20px;">
             <a href="/">Home</a> |
@@ -13,7 +13,7 @@
             <a href="/logout">Logout</a> |
         </nav>
         <hr>
-        <h1>Create TODO (Insecure)</h1>
+        <h1>Create TODO (Secure)</h1>
         <form method = "POST" action = "/todo">
             <input type = "hidden" name = "_csrf" value="<%= csrfToken %>">
             <input type = "hidden" name = "user_id" value="<%= user.id %>" placeholder="User ID">
