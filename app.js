@@ -5,12 +5,23 @@ const db = require('./db/database');
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
 const sanitize = require("sanitize-html");
+const cookieParser = require("cookie-parser");
+const csurf = require("csurf");
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+
+//parse cookies, required for csurf
+app.use(cookieParser());
+
+//Enable CSRF protection
+const csrfProtection = csurf({cookie: true});
+
+//Add CSRF protection globally for all POST routes
+app.use(csrfProtection);
 
 //converts dangerous characters to harmless text
 function escapeHTML(str){
@@ -40,7 +51,7 @@ app.get("/debug/users", (req, res) => {
 
 //render register page
 app.get("/register", (req, res) => {
-    res.render("register");
+    res.render("register", {csrfToken: req.csrfToken()});
 });
 
 //Secure registration 
@@ -65,7 +76,7 @@ app.get("/register", (req, res) => {
 
 //render login page
 app.get("/login", (req, res) => {
-    res.render("login");
+    res.render("login", {csrfToken: req.csrfToken()});
 });
 
 //secure login - fixes SQL Injection, password exposure, weak auth
@@ -98,7 +109,7 @@ app.post("/login", (req, res) => {
 
 //Secure TODO Creation Page
 app.get("/todo", (req, res) => {
-    res.render("todo");
+    res.render("todo", {csrfToken: req.csrfToken()});
 });
 
 //Secure TODO submission

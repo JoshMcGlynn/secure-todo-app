@@ -12,11 +12,12 @@
             <a href="/debug/todos">Debug Todos</a>
         </nav>
         <hr>
-        <h1> Register (insecure DO NOT USE ANY REAL INFORMATION)</h1>
+        <h1> Register (Secure)</h1>
 
         <form method = "POST" action="/register">
+            <input type = "hidden" name="_csrf" value="<%= csrfToken %>">
             <input name = "username" placeholder="Username" required>
-            <input name = "password" placeholder="Password" required>
+            <input type = "password" name = "password" placeholder="Password" required>
             <button type="submit">Register</button>
         </form>
         

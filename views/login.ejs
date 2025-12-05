@@ -12,11 +12,12 @@
             <a href="/debug/todos">Debug Todos</a>
         </nav>
         <hr>
-        <h1> Login (insecure)</h1>
+        <h1> Login (Secure)</h1>
 
         <form method = "POST" action="/login">
+            <input type = "hidden" name="_csrf" value = "<%= csrfToken %>">
             <input name = "username" placeholder="Username">
-            <input name = "password" placeholder="Password">
+            <input type = "password" name = "password" placeholder="Password">
             <button type="submit">Login</button>
         </form>
         
