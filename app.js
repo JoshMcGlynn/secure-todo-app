@@ -1,4 +1,4 @@
-//Insecure TODO App - Initial Setup
+//Secure TODO App - Initial Setup
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./db/database');
@@ -12,7 +12,17 @@ app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
-//Insecure in-memory session store (no expiration, no protection)
+//converts dangerous characters to harmless text
+function escapeHTML(str){
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+}
+
+//TEMP: simple in-memory session store (to be replaced with secure version)
 let sessions = {};
 
 //Test route
@@ -24,7 +34,7 @@ app.get('/', (req, res) => {
 app.get("/debug/users", (req, res) => {
     db.all("SELECT * FROM users", [], (err, rows) => {
         if (err) return res.send("Error: " + err); 
-        res.json(rows); //sensitive data exposure
+        res.json(rows); 
     });
 });
 
@@ -67,11 +77,11 @@ app.post("/login", (req, res) => {
     db.get(sql, [username], async (err, user) => {
         if(err) return res.send("DB error");
 
-        if(!user) return res.send("Invalid credentials");
+        if(!user) return res.send(`<h1>Login failed for ${escapeHTML(username)}</h1>`);
 
         const match = await bcrypt.compare(password, user.password);
 
-        if(!match) return res.send("Invalid credentials");
+        if(!match) return res.send(`<h1>Login failed for ${escapeHTML(username)}</h1>`);
 
         //secure session cookie will be added later
         const token = Math.random().toString(36).substring(2);
@@ -109,7 +119,7 @@ app.post("/todo", (req, res) => {
     });
 });
 
-//display all TODOs (stored XSS executes here)
+
 app.get("/todos", (req, res) => {
     db.all("SELECT * FROM todos", [], (err, rows) => {
         if(err) return res.send("Error loading TODOs");
