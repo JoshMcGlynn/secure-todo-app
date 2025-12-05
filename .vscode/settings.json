@@ -1,0 +1,10 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "secure-todo-app/db/db.sqlite",
+            "name": "db.sqlite"
+        }
+    ]
+}

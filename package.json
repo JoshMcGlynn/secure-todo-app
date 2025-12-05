@@ -1,0 +1,23 @@
+{
+  "name": "secure-todo-app",
+  "version": "1.0.0",
+  "description": "Simple TODO list application for the purpose of demonstrating insecure vs secure coding practices. There will be 2 separate branches involved, of which one is for the insecure version, and the other being secured properly with modern security principles.",
+  "main": "app.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshMcGlynn/secure-todo-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JoshMcGlynn/secure-todo-app/issues"
+  },
+  "homepage": "https://github.com/JoshMcGlynn/secure-todo-app#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.1"
+  }
+}
