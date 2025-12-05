@@ -85,23 +85,19 @@ app.post("/login", (req, res) => {
     });
 });
 
-//insecure TODO creation page
+//Secure TODO Creation Page
 app.get("/todo", (req, res) => {
     res.render("todo");
 });
 
-//insecure TODO submission (SQL Injection and Stored XSS)
+//Secure TODO submission
 app.post("/todo", (req, res) => {
     const {title, description, user_id} = req.body;
 
-    const query = `
-    INSERT INTO todos (user_id, title, description)
-    VALUES ('${user_id}', '${title}', '${description}')`;
+    const sql = "INSERT INTO todos (user_id, title, description) VALUES (?, ?, ?)";
 
-    db.run(query, (err) => {
-        if(err){
-            return res.send("Error inserting TODO: " + err);
-        }
+    db.run(sql, [user_id, title, description], (err) => {
+        if(err) return res.send("Error inserting TODO: " + err);
         res.redirect("/todos");
     });
 });
