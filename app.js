@@ -8,12 +8,26 @@ const sanitize = require("sanitize-html");
 const cookieParser = require("cookie-parser");
 const csurf = require("csurf");
 const helmet = require("helmet");
+const session = require("express-session");
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
+
+//Express session
+app.use(session({
+    secret: "SUPER_SECRET_KEY_CHANGE_THIS", //required
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,     //JavaScript cannot steal the cookie
+        secure: false,      //must be true in HTTPS, false in localhost
+        sameSite: "strict",     //stops CSRF cookie sending
+        maxAge: 1000 * 60 * 15  //15-minute session expiry
+    }
+}));
 
 //parse cookies, required for csurf
 app.use(cookieParser());
@@ -44,19 +58,6 @@ app.use(
 );
 
 app.use(helmet.referrerPolicy({policy: "no-referrer"}));
-
-//converts dangerous characters to harmless text
-function escapeHTML(str){
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;")
-}
-
-//TEMP: simple in-memory session store (to be replaced with secure version)
-let sessions = {};
 
 //Test route
 app.get('/', (req, res) => {
@@ -109,33 +110,45 @@ app.post("/login", (req, res) => {
 
     db.get(sql, [username], async (err, user) => {
         if(err) return res.send("DB error");
-
-        if(!user) return res.send(`<h1>Login failed for ${escapeHTML(username)}</h1>`);
+        if(!user) return res.send("Invalid Credentials");
 
         const match = await bcrypt.compare(password, user.password);
+        if(!match) return res.send("Invalid Credentials");
 
-        if(!match) return res.send(`<h1>Login failed for ${escapeHTML(username)}</h1>`);
+        //regenerate session to prevent session fixation
+        req.session.regenerate((err) => {
+            if(err) return res.send("Session error");
+            req.session.user = {
+                id: user.id,
+                username: user.username
+            };
 
-        //secure session cookie will be added later
-        const token = Math.random().toString(36).substring(2);
-        sessions[token] = {username: user.username};
+            res.redirect("/");
+        });
+    });
+});
 
-        res.setHeader(
-            "Set-Cookie",
-            `session=${token}; HttpOnly; SameSite=Strict`
-        );
+function requireLogin(req, res, next){
+    if(!req.session.user){
+        return res.redirect("/login");
+    }
+    next();
+}
 
+app.get("/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid");
         res.redirect("/");
     });
 });
 
 //Secure TODO Creation Page
-app.get("/todo", (req, res) => {
+app.get("/todo", requireLogin, (req, res) => {
     res.render("todo", {csrfToken: req.csrfToken()});
 });
 
 //Secure TODO submission
-app.post("/todo", (req, res) => {
+app.post("/todo", requireLogin, (req, res) => {
     const {title, user_id} = req.body;
 
     //Remove ALL scripts, events, inline JS 
@@ -153,7 +166,7 @@ app.post("/todo", (req, res) => {
 });
 
 
-app.get("/todos", (req, res) => {
+app.get("/todos", requireLogin, (req, res) => {
     db.all("SELECT * FROM todos", [], (err, rows) => {
         if(err) return res.send("Error loading TODOs");
 
