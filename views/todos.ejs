@@ -19,7 +19,7 @@
                 <h3><%= todo.title %></h3>
 
                 <!--Stored XSS happens here-->
-                <p><%- todo.description %></p>
+                <p><%= todo.description %></p>
 
                 <small>User ID: <%= todo.user_id %></small>
             </div>

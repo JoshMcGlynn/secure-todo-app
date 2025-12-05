@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const db = require('./db/database');
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require("bcrypt");
+const sanitize = require("sanitize-html");
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
@@ -92,7 +93,13 @@ app.get("/todo", (req, res) => {
 
 //Secure TODO submission
 app.post("/todo", (req, res) => {
-    const {title, description, user_id} = req.body;
+    const {title, user_id} = req.body;
+
+    //Remove ALL scripts, events, inline JS 
+    const description = sanitize(req.body.description, {
+        allowedTags: [],
+        allowedAttributes: {}
+    });
 
     const sql = "INSERT INTO todos (user_id, title, description) VALUES (?, ?, ?)";
 
