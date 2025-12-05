@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const sanitize = require("sanitize-html");
 const cookieParser = require("cookie-parser");
 const csurf = require("csurf");
+const helmet = require("helmet");
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
@@ -22,6 +23,27 @@ const csrfProtection = csurf({cookie: true});
 
 //Add CSRF protection globally for all POST routes
 app.use(csrfProtection);
+
+//helmet
+app.use(helmet());
+
+//override frameguard default (so that X-FRAME-OPTIONS sets to DENY)
+app.use(helmet.frameguard({action: "deny"}));
+
+//additional security headers
+app.use(
+    helmet.contentSecurityPolicy({
+        useDefaults: true,
+        directives: {
+            "default-src": ["'self'"],
+            "script-src": ["'self'"],
+            "object-src": ["'none'"],
+            "frame-ancestors": ["'none'"]
+        }
+    })
+);
+
+app.use(helmet.referrerPolicy({policy: "no-referrer"}));
 
 //converts dangerous characters to harmless text
 function escapeHTML(str){
