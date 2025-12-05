@@ -9,6 +9,7 @@ const cookieParser = require("cookie-parser");
 const csurf = require("csurf");
 const helmet = require("helmet");
 const session = require("express-session");
+const {log} = require("./logger");
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
@@ -126,27 +127,42 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
     const{username, password} = req.body;
 
+    log(`LOGIN ATTEMPT: username="${username}"`);
+
     if(!isValidUsername(username) || !isValidPassword(password)){
+        log(`LOGIN FAILED (invalid input) for username="${username}"`);
         return res.send("Invalid credentials");
     }
 
     const sql = "SELECT * FROM users WHERE username = ?";
 
     db.get(sql, [username], async (err, user) => {
-        if(err) return res.send("DB error");
-        if(!user) return res.send("Invalid Credentials");
+        if(err) {
+            log(`DB ERROR during login for username="${username}": $(err)`);
+            return res.send("DB error");
+        }
 
+        if(!user) {
+            log(`LOGIN FAILED (user does not exist) for username="${username}": ${err}`);
+            return res.send("Invalid Credentials");
+        }
         const match = await bcrypt.compare(password, user.password);
-        if(!match) return res.send("Invalid Credentials");
+        if(!match){
+            log(`LOGIN FAILED (wrong password) for username="${username}"`);
+            return res.send("Invalid Credentials");
+        }
 
         //regenerate session to prevent session fixation
         req.session.regenerate((err) => {
-            if(err) return res.send("Session error");
+            if(err) {
+                log(`SESSION ERROR for username="${username}":${err}`);
+                return res.send("Session error");
+            }
             req.session.user = {
                 id: user.id,
                 username: user.username
             };
-
+            log(`LOGIN SUCCESS: user_id=${user.id}, username="${username}"`);
             res.redirect("/");
         });
     });
@@ -160,6 +176,10 @@ function requireLogin(req, res, next){
 }
 
 app.get("/logout", (req, res) => {
+    if(req.session.user){
+        log(`LOGOUT: user_id=${req.session.user.id}, username="${req.session.user.username}"`);
+    }
+    
     req.session.destroy(() => {
         res.clearCookie("connect.sid");
         res.redirect("/");
@@ -177,10 +197,10 @@ app.get("/todo", requireLogin, (req, res) => {
 //Secure TODO submission
 app.post("/todo", requireLogin, (req, res) => {
     const {title} = req.body;
-
     const user_id = req.session.user.id;
 
     if(!isValidTodoTitle(title) || !isNumeric(user_id)){
+        log(`TODO CREATE FAILED by user_id=${user_id}: Invalid Input`);
         return res.send("Invalid TODO input (User ID must be Numeric if you used String)");
     }
 
@@ -193,20 +213,27 @@ app.post("/todo", requireLogin, (req, res) => {
     const sql = "INSERT INTO todos (user_id, title, description) VALUES (?, ?, ?)";
 
     db.run(sql, [user_id, title, description], (err) => {
-        if(err) return res.send("Error inserting TODO: " + err);
+        if(err) {
+            log(`TODO CREATE DB ERROR for user_id=${user_id}: ${err}`);
+            return res.send("Error inserting TODO: " + err);
+        }
+        log(`TODO CREATED: user_id=${user_id}, title="${title}"`);
         res.redirect("/todos");
     });
 });
 
 app.post("/todo/delete", requireLogin, (req, res) => {
-    console.log("DELETE REQUEST RECEIVED: ", req.body);
 
     const {todo_id} = req.body;
-
+    log(`DELETE REQUEST: user_id=${req.session.user.id}, todo_id=${todo_id}`);
     const sql = "DELETE FROM todos WHERE id = ? AND user_id = ?";
 
     db.run(sql, [todo_id, req.session.user.id], (err) => {
-        if(err) return res.send("Error deleting TODO");
+        if(err){
+            log(`TODO DELETE ERROR: todo_id=${todo_id}, by user_id=${req.session.user.id}`);
+            return res.send("Error deleting TODO");
+        }
+        log(`TODO DELETED: todo_id=${todo_id}, by user_id=${req.session.user.id}`);
         res.redirect("/todos");
     });
 });

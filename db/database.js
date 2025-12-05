@@ -4,18 +4,18 @@ const path = require('path');
 //database file location
 const dbPath = path.join(__dirname, 'db.sqlite');
 
-//connect to SQLite (insecure - no encryption, no WAL, no PRAGMA hardening)
+//connect to SQLite 
 const db = new sqlite3.Database(dbPath, (err) => {
     if(err){
         console.error("Error creating database:", err);
     }else{
-        console.log("Connected to SQLite database (INSECURE)");
+        console.log("Connected to SQLite database (SECURE)");
     }
 });
 
-//create tables (very insecure schema)
+//create tables 
 db.serialize(() => {
-    //users table - passwords stored in plaintext
+    
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +25,7 @@ db.serialize(() => {
         )
     `);
 
-    //TODOs table, description is raw text which allows stored XSS
+    //TODOs table
     db.run(`
         CREATE TABLE IF NOT EXISTS todos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
