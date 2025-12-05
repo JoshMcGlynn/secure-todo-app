@@ -59,6 +59,22 @@ app.use(
 
 app.use(helmet.referrerPolicy({policy: "no-referrer"}));
 
+function isValidUsername(u){
+    return typeof u === "string" && u.length >= 3 && u.length <= 20;
+}
+
+function isValidPassword(p){
+    return typeof p === "string" && p.length >= 6 && p.length <= 50;
+}
+
+function isValidTodoTitle(t) {
+    return typeof t === "string" && t.length >= 1 && t.length <= 100;
+}
+
+function isNumeric(n) {
+    return /^[0-9]+$/.test(n);
+}
+
 //Test route
 app.get('/', (req, res) => {
     res.render("home");
@@ -81,6 +97,10 @@ app.get("/register", (req, res) => {
 
     app.post("/register", async (req, res) => {
         const { username, password } = req.body;
+
+        if (!isValidUsername(username) || !isValidPassword(password)){
+            return res.send("Invalid input");
+        }
 
         try{
         //secure hashing
@@ -105,6 +125,10 @@ app.get("/login", (req, res) => {
 //secure login - fixes SQL Injection, password exposure, weak auth
 app.post("/login", (req, res) => {
     const{username, password} = req.body;
+
+    if(!isValidUsername(username) || !isValidPassword(password)){
+        return res.send("Invalid credentials");
+    }
 
     const sql = "SELECT * FROM users WHERE username = ?";
 
@@ -144,12 +168,21 @@ app.get("/logout", (req, res) => {
 
 //Secure TODO Creation Page
 app.get("/todo", requireLogin, (req, res) => {
-    res.render("todo", {csrfToken: req.csrfToken()});
+    res.render("todo", {
+        csrfToken: req.csrfToken(),
+        user: req.session.user
+    });
 });
 
 //Secure TODO submission
 app.post("/todo", requireLogin, (req, res) => {
-    const {title, user_id} = req.body;
+    const {title} = req.body;
+    
+    const user_id = req.session.user.id;
+
+    if(!isValidTodoTitle(title) || !isNumeric(user_id)){
+        return res.send("Invalid TODO input (User ID must be Numeric if you used String)");
+    }
 
     //Remove ALL scripts, events, inline JS 
     const description = sanitize(req.body.description, {
@@ -165,12 +198,27 @@ app.post("/todo", requireLogin, (req, res) => {
     });
 });
 
+app.post("/todo/delete", requireLogin, (req, res) => {
+    console.log("DELETE REQUEST RECEIVED: ", req.body);
+
+    const {todo_id} = req.body;
+
+    const sql = "DELETE FROM todos WHERE id = ? AND user_id = ?";
+
+    db.run(sql, [todo_id, req.session.user.id], (err) => {
+        if(err) return res.send("Error deleting TODO");
+        res.redirect("/todos");
+    });
+});
 
 app.get("/todos", requireLogin, (req, res) => {
     db.all("SELECT * FROM todos", [], (err, rows) => {
         if(err) return res.send("Error loading TODOs");
 
-        res.render("todos", {todos: rows});
+        res.render("todos", {
+            todos: rows,
+            csrfToken: req.csrfToken()
+        });
     });
 });
 
