@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.set("view engine", "ejs");
 app.use(express.static("public"));
 
-//Express session
+//Express session, stores user session IDs securely and prevents client-side tampering
 app.use(session({
     secret: "SUPER_SECRET_KEY_CHANGE_THIS", //required
     resave: false,
@@ -95,7 +95,7 @@ app.get("/register", (req, res) => {
 });
 
 //Secure registration 
-
+//Creates a new account, the password is hashed using bcrypt
     app.post("/register", async (req, res) => {
         const { username, password } = req.body;
 
@@ -124,6 +124,7 @@ app.get("/login", (req, res) => {
 });
 
 //secure login - fixes SQL Injection, password exposure, weak auth
+//validates user credentials and starts a new session if correct 
 app.post("/login", (req, res) => {
     const{username, password} = req.body;
 

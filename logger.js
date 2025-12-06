@@ -1,3 +1,5 @@
+//logger.js is a simple logging module used to record important security events
+//such as failed logins, actions, and database errors
 const fs = require("fs");
 const path = require("path");
 
